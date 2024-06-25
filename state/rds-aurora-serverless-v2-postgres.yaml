@@ -31,6 +31,7 @@ Metadata:
     - Label:
         default: 'RDS Parameters'
       Parameters:
+      - AllowMajorVersionUpgrade
       - CACertificateIdentifier
       - DBBackupRetentionPeriod
       - DBClusterParameterGroupName
@@ -154,6 +155,11 @@ Parameters:
     Type: String
     AllowedValues: ['rds-ca-rsa2048-g1', 'rds-ca-rsa4096-g1', 'rds-ca-ecc384-g1'] # https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/UsingWithRDS.SSL-certificate-rotation.html
     Default: 'rds-ca-ecc384-g1'
+  AllowMajorVersionUpgrade:
+    Description: 'A value that indicates whether major version upgrades are allowed.'
+    Type: String
+    AllowedValues: ['true', 'false']
+    Default: 'false'
 Mappings:
   EngineVersionMap:
     '16.2':
@@ -170,6 +176,8 @@ Mappings:
       ClusterParameterGroupFamily: 'aurora-postgresql13'
 Conditions:
   HasAlertTopic: !Not [!Equals [!Ref ParentAlertStack, '']]
+  HasAllowMajorVersionUpgrade: !Equals [!Ref AllowMajorVersionUpgrade, 'true']
+  HasAllowMajorVersionUpgradeAndCustomDBParameterGroup: !And [!Condition HasAllowMajorVersionUpgrade, !Condition HasDBParameterGroup]
   HasDBClusterParameterGroup: !Not [!Equals [!Ref DBClusterParameterGroupName, '']]
   HasDBParameterGroup: !Not [!Equals [!Ref DBParameterGroupName, '']]
   HasDBSnapshotIdentifier: !Not [!Condition HasNotDBSnapshotIdentifier]
@@ -265,6 +273,12 @@ Resources:
       - HasDBClusterParameterGroup
       - !Ref DBClusterParameterGroupName
       - !Ref DBClusterParameterGroup
+      # https://github.com/aws-cloudformation/cloudformation-coverage-roadmap/issues/1373
+      # https://github.com/aws-cloudformation/cloudformation-coverage-roadmap/issues/896#issuecomment-1514031406
+      DBInstanceParameterGroupName: !If
+      - HasAllowMajorVersionUpgradeAndCustomDBParameterGroup
+      - !Ref DBParameterGroupName
+      - !Ref AWS::NoValue
       DBSubnetGroupName: !Ref DBSubnetGroup
       EnableHttpEndpoint: !Ref EnableDataApi
       EnableCloudwatchLogsExports:
@@ -293,7 +307,7 @@ Resources:
   DBInstanceA:
     Type: AWS::RDS::DBInstance
     Properties:
-      AllowMajorVersionUpgrade: false
+      AllowMajorVersionUpgrade: !Ref AllowMajorVersionUpgrade
       AutoMinorVersionUpgrade: true
       CACertificateIdentifier: !Ref CACertificateIdentifier
       DBClusterIdentifier: !Ref DBCluster
@@ -311,7 +325,7 @@ Resources:
   DBInstanceB:
     Type: AWS::RDS::DBInstance
     Properties:
-      AllowMajorVersionUpgrade: false
+      AllowMajorVersionUpgrade: !Ref AllowMajorVersionUpgrade
       AutoMinorVersionUpgrade: true
       CACertificateIdentifier: !Ref CACertificateIdentifier
       DBClusterIdentifier: !Ref DBCluster
