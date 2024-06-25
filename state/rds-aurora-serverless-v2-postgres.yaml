@@ -148,7 +148,7 @@ Parameters:
   EngineVersion:
     Description: 'Aurora Serverless v2 PostgreSQL version.'
     Type: String
-    AllowedValues: ['15.5', '14.10', '13.13'] # aws rds describe-orderable-db-instance-options --engine aurora-postgresql --db-instance-class db.serverless --query 'OrderableDBInstanceOptions[].[EngineVersion]' --output text
+    AllowedValues: ['16.2', '16.1', '15.6', '15.5', '14.10', '13.13'] # aws rds describe-orderable-db-instance-options --engine aurora-postgresql --db-instance-class db.serverless --query 'OrderableDBInstanceOptions[].[EngineVersion]' --output text
   CACertificateIdentifier:
     Description: 'The identifier of the CA certificate for this DB instance.'
     Type: String
@@ -156,6 +156,12 @@ Parameters:
     Default: 'rds-ca-ecc384-g1'
 Mappings:
   EngineVersionMap:
+    '16.2':
+      ClusterParameterGroupFamily: 'aurora-postgresql16'
+    '16.1':
+      ClusterParameterGroupFamily: 'aurora-postgresql16'
+    '15.6':
+      ClusterParameterGroupFamily: 'aurora-postgresql15'
     '15.5':
       ClusterParameterGroupFamily: 'aurora-postgresql15'
     '14.10':
