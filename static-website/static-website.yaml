@@ -272,9 +272,12 @@ Resources:
           S3OriginConfig:
             OriginAccessIdentity: !Sub 'origin-access-identity/cloudfront/${CloudFrontOriginAccessIdentity}'
         PriceClass: 'PriceClass_All'
-        ViewerCertificate:
-          AcmCertificateArn: !If [HasCreateAcmCertificate, !Ref Certificate, !If [HasAcmCertificateArn, !Ref ExistingCertificate, !Ref 'AWS::NoValue']]
-          IamCertificateId: !If [HasIamCertificateId, !Ref ExistingCertificate, !Ref 'AWS::NoValue']
+        ViewerCertificate: !If
+        - HasIamCertificateId # Check if IamCertificateId is chosen
+        - IamCertificateId: !Ref ExistingCertificate
+          MinimumProtocolVersion: 'TLSv1.2_2019'
+          SslSupportMethod: 'sni-only'
+        - AcmCertificateArn: !If [HasAcmCertificateArn, !Ref ExistingCertificate, !Ref Certificate]
           MinimumProtocolVersion: 'TLSv1.2_2019'
           SslSupportMethod: 'sni-only'
         WebACLId: !If
