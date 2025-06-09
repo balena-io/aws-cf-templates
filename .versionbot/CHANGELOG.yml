@@ -1,0 +1,26 @@
+- commits:
+    - subject: Switch to flowzone for CI workflows.
+      hash: 0fe6cc55812cb257a8a6cfc6c6b4454e907e5688
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Carlo Miguel F. Cruz <carloc@balena.io>
+        signed-off-by: Carlo Miguel F. Cruz <carloc@balena.io>
+      author: Carlo Miguel F. Cruz
+      nested: []
+    - subject: "minor: Aurora PSQL enhanced monitoring and PI"
+      hash: af233da158c0b15ac1056e9cdca250b87ae50f01
+      body: ""
+      footer: {}
+      author: Anton Belodedenko
+      nested: []
+    - subject: "patch: AWS Valkey support"
+      hash: 1149321f6399903c744aa040a2ecbfc93739e936
+      body: ""
+      footer: {}
+      author: Anton Belodedenko
+      nested: []
+  version: 0.1.0
+  title: ""
+  date: 2025-06-09T13:15:29.539Z
