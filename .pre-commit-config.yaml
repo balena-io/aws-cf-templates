@@ -1,0 +1,19 @@
+# See https://pre-commit.com for more information
+# See https://pre-commit.com/hooks.html for more hooks
+exclude: ^(.versionbot/|CHANGELOG.md|VERSION|kube/balena-cloud/loki/simple-scalable.yaml)
+repos:
+- repo: https://github.com/pre-commit/pre-commit-hooks
+  rev: v5.0.0
+  hooks:
+  - id: trailing-whitespace
+    exclude: ^docs/|^wordpress/
+  - id: end-of-file-fixer
+    exclude: ^docs/|^test/|LICENSE
+  - id: check-added-large-files
+
+- repo: https://github.com/aws-cloudformation/cfn-lint
+  rev: v1.32.0
+  hooks:
+  - id: cfn-lint
+    files: (?x)^(aws/.*\.(json|yml|yaml))$
+    args: [--ignore-checks=E1019,E3002,E2520]
