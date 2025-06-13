@@ -44,8 +44,9 @@ Metadata:
       - EnableDataApi
       - EngineVersion
       - PerformanceInsightsRetentionPeriod
-      - PreferredBackupWindow
-      - PreferredMaintenanceWindow
+      # TODO re-enable as soon as CloudFormation bug ix fixed
+      #- PreferredBackupWindow
+      #- PreferredMaintenanceWindow
       - SubDomainNameWithDot
     - Label:
         default: 'Serverless Parameters'
@@ -123,14 +124,15 @@ Parameters:
     Description: 'Name that is used to create the DNS entry with trailing dot, e.g. §{SubDomainNameWithDot}§{HostedZoneName}. Leave blank for naked (or apex and bare) domain. Requires ParentZoneStack parameter!'
     Type: String
     Default: 'aurora.'
-  PreferredBackupWindow:
-    Description: 'IGNORED BECAUSE OF A BUG IN CLOUDFORMATION! VALUE WILL APPLY IN THE FUTURE! The daily time range in UTC during which you want to create automated backups.' # TODO remove uppercase warning
-    Type: String
-    Default: '09:54-10:24'
-  PreferredMaintenanceWindow:
-    Description: 'IGNORED BECAUSE OF A BUG IN CLOUDFORMATION! VALUE WILL APPLY IN THE FUTURE! The weekly time range (in UTC) during which system maintenance can occur.' # TODO remove uppercase warning
-    Type: String
-    Default: 'sat:07:00-sat:07:30'
+  # TODO re-enable as soon as CloudFormation bug ix fixed
+  #PreferredBackupWindow:
+  #  Description: 'IGNORED BECAUSE OF A BUG IN CLOUDFORMATION! VALUE WILL APPLY IN THE FUTURE! The daily time range in UTC during which you want to create automated backups.' # TODO remove uppercase warning
+  #  Type: String
+  #  Default: '09:54-10:24'
+  #PreferredMaintenanceWindow:
+  #  Description: 'IGNORED BECAUSE OF A BUG IN CLOUDFORMATION! VALUE WILL APPLY IN THE FUTURE! The weekly time range (in UTC) during which system maintenance can occur.' # TODO remove uppercase warning
+  #  Type: String
+  #  Default: 'sat:07:00-sat:07:30'
   EnableDataApi:
     Description: 'Enable the Data API (https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/data-api.html).'
     Type: String
@@ -294,7 +296,7 @@ Resources:
       - !If
         - HasSecret
         - !Join ['', ['{{resolve:secretsmanager:', {'Fn::ImportValue': !Sub '${ParentSecretStack}-SecretArn'}, ':SecretString:password}}']]
-        - !Ref DBMasterUserPassword
+        - !Sub "${DBMasterUserPassword}"
       # PreferredBackupWindow: !Ref PreferredBackupWindow TODO re-enable as soon as CloudFormation bug ix fixed
       # PreferredMaintenanceWindow: !Ref PreferredMaintenanceWindow TODO re-enable as soon as CloudFormation bug ix fixed
       ServerlessV2ScalingConfiguration:
