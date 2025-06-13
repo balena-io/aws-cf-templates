@@ -1,4 +1,20 @@
 - commits:
+    - subject: "patch: Satisfy cfn-lint and rename exports"
+      hash: fb4c30e12ae2c5fbefe39e7a658b6242db2a8c02
+      body: ""
+      footer: {}
+      author: Anton Belodedenko
+      nested: []
+    - subject: "patch: Fix cfn-lint error E3014 for static-website template."
+      hash: 3fe9f558dd85113e726aca42673ee25be2fe8f95
+      body: ""
+      footer: {}
+      author: Carlo Miguel F. Cruz
+      nested: []
+  version: 0.1.1
+  title: ""
+  date: 2025-06-13T00:19:42.897Z
+- commits:
     - subject: Switch to flowzone for CI workflows.
       hash: 0fe6cc55812cb257a8a6cfc6c6b4454e907e5688
       body: ""
