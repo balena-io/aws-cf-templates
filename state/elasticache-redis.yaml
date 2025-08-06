@@ -73,7 +73,7 @@ Parameters:
   EngineVersion:
     Description: 'Redis or Valkey version'
     Type: String
-    AllowedValues: ['8.0', '7.2', '7.1', '7.0', '6.2', '6.0', '5.0.6', '5.0.5', '5.0.4', '5.0.3', '5.0.0', '4.0.10'] # aws elasticache describe-cache-engine-versions --engine redis --query "CacheEngineVersions[].EngineVersion"
+    AllowedValues: ['8.1', '8.0', '7.2', '7.1', '7.0', '6.2', '6.0', '5.0.6', '5.0.5', '5.0.4', '5.0.3', '5.0.0', '4.0.10'] # aws elasticache describe-cache-engine-versions --engine redis --query "CacheEngineVersions[].EngineVersion"
   CacheNodeType:
     Description: 'The compute and memory capacity of the nodes in the node group (shard).'
     Type: 'String'
@@ -159,6 +159,9 @@ Parameters:
     - volatile-ttl
 Mappings:
   EngineVersionMap:
+    '8.1':
+      CacheParameterGroupFamily: valkey8
+      Engine: valkey
     '8.0':
       CacheParameterGroupFamily: valkey8
       Engine: valkey
