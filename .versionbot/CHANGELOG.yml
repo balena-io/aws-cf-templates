@@ -1,4 +1,16 @@
 - commits:
+    - subject: Add support for valkey 8.1
+      hash: 1b7a038b1d75e0caddf3a51a24ff99a3cbb2461d
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 0.1.2
+  title: ""
+  date: 2025-08-06T14:32:19.520Z
+- commits:
     - subject: "patch: Satisfy cfn-lint and rename exports"
       hash: fb4c30e12ae2c5fbefe39e7a658b6242db2a8c02
       body: ""
