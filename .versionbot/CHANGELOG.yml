@@ -1,4 +1,16 @@
 - commits:
+    - subject: Add support for aurora postgres 17.5
+      hash: 8c0fa357765ee451d5228243f8311e423059e01a
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 0.1.3
+  title: ""
+  date: 2025-08-12T14:22:53.369Z
+- commits:
     - subject: Add support for valkey 8.1
       hash: 1b7a038b1d75e0caddf3a51a24ff99a3cbb2461d
       body: ""
