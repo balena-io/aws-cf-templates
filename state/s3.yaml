@@ -15,6 +15,10 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Description: 'State: S3 bucket, a cloudonaut.io template, sponsored by https://github.com/ngault'
 Metadata:
+  cfn-lint:
+    config:
+      ignore_checks:
+      - W3045  # 'AccessControl' is a legacy property. Consider using 'AWS::S3::BucketPolicy' instead
   'AWS::CloudFormation::Interface':
     ParameterGroups:
     - Label:
@@ -34,6 +38,11 @@ Metadata:
       - NoncurrentVersionExpirationInDays
       - ExpirationInDays
       - ExpirationPrefix
+      - CorsAllowedHeaders
+      - CorsAllowedMethods
+      - CorsAllowedOrigins
+      - CorsExposedHeaders
+      - CorsMaxAge
     - Label:
         default: 'Lambda Parameters'
       Parameters:
@@ -140,6 +149,26 @@ Parameters:
     Description: 'Optional ARN for a policy that will be used as the permission boundary for all roles created by this template.'
     Type: String
     Default: ''
+  CorsAllowedHeaders:
+    Description: 'Headers that are specified in the Access-Control-Request-Headers header.'
+    Type: String
+    Default: ''
+  CorsAllowedMethods:
+    Description: 'An HTTP method that you allow the origin to run.'
+    Type: String
+    Default: ''
+  CorsAllowedOrigins:
+    Description: 'One or more origins you want customers to be able to access the bucket from.'
+    Type: String
+    Default: ''
+  CorsExposedHeaders:
+    Description: 'One or more headers in the response that you want customers to be able to access from their applications (for example, from a JavaScript XMLHttpRequest object).'
+    Type: String
+    Default: ''
+  CorsMaxAge:
+    Description: 'The time in seconds that your browser is to cache the preflight response for the specified resource.'
+    Type: Number
+    Default: 0
 Conditions:
   HasKmsKey: !Not [!Equals [!Ref ParentKmsKeyStack, '']]
   HasS3Bucket: !Not [!Equals [!Ref ParentS3StackAccessLog, '']]
@@ -173,9 +202,14 @@ Conditions:
   HasPermissionsBoundary: !Not [!Equals [!Ref PermissionsBoundary, '']]
   HasBucketOwnerPreferred: !Or [!Condition HasCloudFrontAccessLogWrite, !Condition HasS3AccessLogWrite, !Not [!Condition HasBlockPublicAccess]]
   HasRestrictCustomerKeys: !Equals [!Ref RestrictCustomerKeys, 'true']
+  HasCorsConfiguration: !And [!Not [!Equals [!Ref CorsAllowedMethods, '']], !Not [!Equals [!Ref CorsAllowedOrigins, '']]]
+  HasCorsAllowedHeaders: !Not [!Equals [!Ref CorsAllowedHeaders, '']]
+  HasCorsExposedHeaders: !Not [!Equals [!Ref CorsExposedHeaders, '']]
 Resources:
-  Bucket: # cannot be deleted with data
+  Bucket:
     Type: 'AWS::S3::Bucket'
+    DeletionPolicy: Retain # cannot be deleted with data
+    UpdateReplacePolicy: Retain
     Properties:
       BucketName: !If [HasBucketName, !Ref BucketName, !Ref 'AWS::NoValue']
       LoggingConfiguration: !If [HasS3Bucket, {DestinationBucketName: {'Fn::ImportValue': !Sub '${ParentS3StackAccessLog}-BucketName'}, LogFilePrefix: !Ref 'AWS::StackName'}, !Ref 'AWS::NoValue']
@@ -205,6 +239,16 @@ Resources:
       BucketEncryption:
         ServerSideEncryptionConfiguration:
         - !If [HasKmsKey, {BucketKeyEnabled: true, ServerSideEncryptionByDefault: {KMSMasterKeyID: {'Fn::ImportValue': !Sub '${ParentKmsKeyStack}-KeyArn'}, SSEAlgorithm: 'aws:kms'}}, {ServerSideEncryptionByDefault: {SSEAlgorithm: 'AES256'}}]
+      CorsConfiguration: !If
+      - HasCorsConfiguration
+      - CorsRules:
+        - AllowedHeaders: !If [HasCorsAllowedHeaders, !Split [',', !Ref CorsAllowedHeaders], !Ref 'AWS::NoValue']
+          AllowedMethods: !Split [',', !Ref CorsAllowedMethods]
+          AllowedOrigins: !Split [',', !Ref CorsAllowedOrigins]
+          ExposedHeaders: !If [HasCorsExposedHeaders, !Split [',', !Ref CorsExposedHeaders], !Ref 'AWS::NoValue']
+          Id: !Sub '${AWS::StackName}'
+          MaxAge: !Ref CorsMaxAge
+      - !Ref 'AWS::NoValue'
   BucketPolicy:
     Type: 'AWS::S3::BucketPolicy'
     Properties:
