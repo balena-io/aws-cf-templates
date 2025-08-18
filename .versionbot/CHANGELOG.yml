@@ -1,4 +1,14 @@
 - commits:
+    - subject: "patch: Optionally configure CORS rule"
+      hash: 91597943c5a95b9e3356a150eff85d3ceaaa21e7
+      body: https://docs.aws.amazon.com/AWSCloudFormation/latest/TemplateReference/aws-properties-s3-bucket-corsrule.html
+      footer: {}
+      author: Anton Belodedenko
+      nested: []
+  version: 0.1.4
+  title: ""
+  date: 2025-08-18T22:02:41.897Z
+- commits:
     - subject: Add support for aurora postgres 17.5
       hash: 8c0fa357765ee451d5228243f8311e423059e01a
       body: ""
