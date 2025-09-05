@@ -47,6 +47,7 @@ Metadata:
       - PerformanceInsightsRetentionPeriod
       - DatabaseInsightsMode
       - MonitoringInterval
+      - StorageType
 Parameters:
   ParentVPCStack:
     Description: 'Stack name of parent VPC stack based on vpc/vpc-*azs.yaml template.'
@@ -92,6 +93,13 @@ Parameters:
     - 'aurora-postgresql-12.8'
     - 'aurora-postgresql-11.18'
     - 'aurora-postgresql-11.9'
+  StorageType:
+    Description: 'The storage type to associate with the DB cluster.'
+    Type: String
+    AllowedValues:
+    - 'aurora'
+    - 'aurora-iopt1'
+    Default: 'aurora-iopt1'
   DBSnapshotIdentifier:
     Description: 'Optional identifier for the DB cluster snapshot from which you want to restore (leave blank to create an empty cluster).'
     Type: String
@@ -389,6 +397,7 @@ Resources:
       PreferredMaintenanceWindow: !Ref PreferredMaintenanceWindow
       SnapshotIdentifier: !If [HasDBSnapshotIdentifier, !Ref DBSnapshotIdentifier, !Ref 'AWS::NoValue']
       StorageEncrypted: !If [HasDBSnapshotIdentifier, !Ref 'AWS::NoValue', !If [HasKmsKey, true, false]]
+      StorageType: !Ref StorageType
       VpcSecurityGroupIds:
       - !Ref ClusterSecurityGroup
   DBParameterGroup:
