@@ -1,4 +1,14 @@
 - commits:
+    - subject: "patch: Configurable Aurora StorageType"
+      hash: 83512a46dd4e747a2b43db90bc334e16bfa55214
+      body: https://balena.fibery.io/Work/Project/Anton-works-1422
+      footer: {}
+      author: Anton Belodedenko
+      nested: []
+  version: 0.1.5
+  title: ""
+  date: 2025-09-05T00:44:56.624Z
+- commits:
     - subject: "patch: Optionally configure CORS rule"
       hash: 91597943c5a95b9e3356a150eff85d3ceaaa21e7
       body: https://docs.aws.amazon.com/AWSCloudFormation/latest/TemplateReference/aws-properties-s3-bucket-corsrule.html
