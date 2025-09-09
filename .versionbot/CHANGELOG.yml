@@ -1,4 +1,14 @@
 - commits:
+    - subject: "patch: Set aurora as default option for StorageType"
+      hash: e87bb0715158e77b881d8ca5afd8557218e2f061
+      body: https://balena.fibery.io/Work/Project/Anton-works-1422
+      footer: {}
+      author: Anton Belodedenko
+      nested: []
+  version: 0.1.6
+  title: ""
+  date: 2025-09-09T16:06:14.881Z
+- commits:
     - subject: "patch: Configurable Aurora StorageType"
       hash: 83512a46dd4e747a2b43db90bc334e16bfa55214
       body: https://balena.fibery.io/Work/Project/Anton-works-1422
