@@ -99,7 +99,7 @@ Parameters:
     AllowedValues:
     - 'aurora'
     - 'aurora-iopt1'
-    Default: 'aurora-iopt1'
+    Default: 'aurora'
   DBSnapshotIdentifier:
     Description: 'Optional identifier for the DB cluster snapshot from which you want to restore (leave blank to create an empty cluster).'
     Type: String
