@@ -373,6 +373,11 @@ Outputs:
     Value: !GetAtt 'DBCluster.Endpoint.Address'
     Export:
       Name: !Sub '${AWS::StackName}-DNSName'
+  ReadDNSName:
+    Description: 'The reader endpoint for the DB cluster.'
+    Value: !GetAtt 'DBCluster.ReadEndpoint.Address'
+    Export:
+      Name: !Sub '${AWS::StackName}-ReadDNSName'
   SecurityGroupId:
     Description: 'The security group used to manage access to RDS Aurora Serverless Postgres.'
     Value: !Ref ClusterSecurityGroup
