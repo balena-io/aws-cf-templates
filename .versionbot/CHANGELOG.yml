@@ -1,4 +1,14 @@
 - commits:
+    - subject: "patch: Add ReadDNSName export"
+      hash: 6f4f426484a2db5bbe65f58d21a9b9eac2d22eeb
+      body: ""
+      footer: {}
+      author: Anton Belodedenko
+      nested: []
+  version: 0.1.7
+  title: ""
+  date: 2025-10-13T06:09:23.512Z
+- commits:
     - subject: "patch: Set aurora as default option for StorageType"
       hash: e87bb0715158e77b881d8ca5afd8557218e2f061
       body: https://balena.fibery.io/Work/Project/Anton-works-1422
