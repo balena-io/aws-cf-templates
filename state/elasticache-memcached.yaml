@@ -259,12 +259,12 @@ Resources:
             const preferredAZs = Array(nodes).fill('').map((v, i) => azs[i % azs.length]);
             response.send(event, context, response.SUCCESS, {
               PreferredAvailabilityZones: preferredAZs.join(',')
-            });
+            }, event.LogicalResourceId);
           };
       Handler: 'index.handler'
       MemorySize: 128
       Role: !GetAtt 'CustomResourceLambdaRole.Arn'
-      Runtime: 'nodejs20.x'
+      Runtime: 'nodejs22.x'
       Timeout: 60
   CustomResourceLambdaLogGroup:
     Type: 'AWS::Logs::LogGroup'
