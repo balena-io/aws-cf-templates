@@ -1,4 +1,15 @@
 - commits:
+    - subject: "[Improvement] vpc/vpc-endpoint - Update supported service names (#757)"
+      hash: 9cc97b8f6fccd9b10db846d27fa488b1a14335ca
+      body: ""
+      footer:
+        change-type: minor
+      author: Michael Wittig
+      nested: []
+  version: 0.2.0
+  title: ""
+  date: 2025-12-12T00:20:42.539Z
+- commits:
     - subject: "patch: Add ReadDNSName export"
       hash: 6f4f426484a2db5bbe65f58d21a9b9eac2d22eeb
       body: ""
