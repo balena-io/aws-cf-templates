@@ -1,4 +1,16 @@
 - commits:
+    - subject: Add support for aurora postgres 17.6/17.7
+      hash: 2b2c063d040fb9a2ea547bdcbcccd54845f8e8eb
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 0.2.1
+  title: ""
+  date: 2026-01-07T17:00:30.322Z
+- commits:
     - subject: "[Improvement] vpc/vpc-endpoint - Update supported service names (#757)"
       hash: 9cc97b8f6fccd9b10db846d27fa488b1a14335ca
       body: ""
