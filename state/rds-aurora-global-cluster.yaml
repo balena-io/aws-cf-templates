@@ -1,0 +1,178 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: >-
+  Aurora Global Database cluster. Creates an AWS::RDS::GlobalCluster resource
+  and exports its identifier for use with rds-aurora stacks. That identifier
+  can be passed as the GlobalClusterIdentifier property in
+  widdix/aws-cf-templates rds-aurora.yaml DBCluster resources in secondary
+  regions.
+
+# ---------------------------------------------------------------------------
+# Usage
+# ---------------------------------------------------------------------------
+# 1. Deploy a widdix rds-aurora stack in the PRIMARY region first, without
+#    GlobalClusterIdentifier on the AWS::RDS::DBCluster resource.
+#
+# 2. Deploy this stack and set:
+#      SourceDBClusterIdentifier: <ARN of the primary DB cluster>
+#    This creates the AWS::RDS::GlobalCluster and attaches the existing
+#    primary DB cluster as the writer cluster.
+#
+# 3. Deploy a widdix rds-aurora stack in each SECONDARY region,
+#    passing:
+#      GlobalClusterIdentifier: <global-cluster-identifier>
+#    to the AWS::RDS::DBCluster Properties block.
+#
+# 4. For SECONDARY region stacks, do not set MasterUsername or
+#    MasterUserPassword on AWS::RDS::DBCluster; those are inherited from
+#    the primary cluster.
+#
+# Notes:
+# - Engine / EngineVersion values here should match the engine/version used by
+#   the primary rds-aurora stack.
+# - If SourceDBClusterIdentifier is provided, this template inherits engine,
+#   engine version, and storage encryption settings from the source cluster.
+# ---------------------------------------------------------------------------
+
+Parameters:
+
+  GlobalClusterIdentifier:
+    Type: String
+    Description: >-
+      Identifier for the Aurora global database cluster. Must be unique within
+      your AWS account. Used as the GlobalClusterIdentifier in rds-aurora stacks.
+    MinLength: 1
+    MaxLength: 63
+    AllowedPattern: '^[a-zA-Z]{1}(?:-?[a-zA-Z0-9]){0,62}$'
+    ConstraintDescription: >-
+      Must begin with a letter, contain only alphanumeric characters and
+      hyphens, and not end with a hyphen.
+
+  Engine:
+    Type: String
+    Description: >-
+      Aurora engine. Required when SourceDBClusterIdentifier is not set;
+      ignored otherwise.
+    AllowedValues:
+      - ''
+      - 'aurora-mysql'
+      - 'aurora-postgresql'
+    Default: ''
+
+  EngineVersion:
+    Type: String
+    Description: >-
+      Aurora engine version (e.g. 17.7 for aurora-postgresql, 8.0.mysql_aurora.3.03.0
+      for aurora-mysql). Optional; omit to let AWS select the default for the engine.
+      Ignored when SourceDBClusterIdentifier is set.
+    Default: ''
+
+  SourceDBClusterIdentifier:
+    Type: String
+    Default: ''
+    Description: >-
+      Optional. ARN of an existing Aurora DB cluster to promote as the primary
+      of this global cluster. When provided, Engine/EngineVersion and
+      StorageEncrypted are inherited from the source cluster and their
+      parameters here are ignored.
+
+  DeletionProtection:
+    Type: String
+    AllowedValues: ['true', 'false']
+    Default: 'false'
+    Description: >-
+      Enable deletion protection on the global cluster. Note: all member
+      clusters must be detached before the global cluster can be deleted
+      regardless of this setting.
+
+# ---------------------------------------------------------------------------
+# Conditions
+# ---------------------------------------------------------------------------
+
+Conditions:
+
+  HasSourceDBCluster: !Not [!Equals [!Ref SourceDBClusterIdentifier, '']]
+  HasEngineVersion: !Not [!Equals [!Ref EngineVersion, '']]
+
+# ---------------------------------------------------------------------------
+# Rules
+# https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/rules-section-structure.html
+# ---------------------------------------------------------------------------
+
+Rules:
+
+  EngineParametersRequiredForNewCluster:
+    RuleCondition: !Equals [!Ref SourceDBClusterIdentifier, '']
+    Assertions:
+      - Assert: !Not [!Equals [!Ref Engine, '']]
+        AssertDescription: >-
+          Engine is required when SourceDBClusterIdentifier is not set.
+      - Assert: !Not [!Equals [!Ref EngineVersion, '']]
+        AssertDescription: >-
+          EngineVersion is required when SourceDBClusterIdentifier is not set.
+
+# ---------------------------------------------------------------------------
+# Resources
+# ---------------------------------------------------------------------------
+
+Resources:
+
+  GlobalCluster:
+    # DeletionPolicy: Delete is intentional — CloudFormation will fail to
+    # delete the global cluster if member clusters are still attached, which
+    # protects against accidental data loss. Change to Retain if you manage
+    # the lifecycle outside of CloudFormation.
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Delete
+    Type: 'AWS::RDS::GlobalCluster'
+    # cfn-lint has a oneOf schema requiring either Engine or SourceDBClusterIdentifier
+    # but not both. The conditional approach with AWS::NoValue is valid CloudFormation
+    # but cfn-lint cannot resolve conditions statically.
+    Metadata:
+      cfn-lint:
+        config:
+          ignore_checks:
+            - E3003
+            - E3018
+    Properties:
+      GlobalClusterIdentifier: !Ref GlobalClusterIdentifier
+      DeletionProtection: !Ref DeletionProtection
+      Engine: !If
+        - HasSourceDBCluster
+        - !Ref 'AWS::NoValue'
+        - !Ref Engine
+      EngineVersion: !If
+        - HasSourceDBCluster
+        - !Ref 'AWS::NoValue'
+        - !If [HasEngineVersion, !Ref EngineVersion, !Ref 'AWS::NoValue']
+      StorageEncrypted: !If
+        - HasSourceDBCluster
+        - !Ref 'AWS::NoValue'
+        - true
+      SourceDBClusterIdentifier: !If
+        - HasSourceDBCluster
+        - !Ref SourceDBClusterIdentifier
+        - !Ref 'AWS::NoValue'
+
+# ---------------------------------------------------------------------------
+# Outputs
+# ---------------------------------------------------------------------------
+
+Outputs:
+
+  TemplateID:
+    Description: 'Template ID.'
+    Value: 'state/aurora-global-cluster'
+
+  StackName:
+    Description: 'Stack name.'
+    Value: !Sub '${AWS::StackName}'
+
+  GlobalClusterIdentifier:
+    Description: >-
+      The global cluster identifier. Pass this as the GlobalClusterIdentifier
+      property on the AWS::RDS::DBCluster resource in secondary-region
+      rds-aurora stacks. The primary cluster is attached by creating this
+      global cluster with SourceDBClusterIdentifier.
+    Value: !Ref GlobalCluster
+    Export:
+      Name: !Sub '${AWS::StackName}-GlobalClusterIdentifier'
