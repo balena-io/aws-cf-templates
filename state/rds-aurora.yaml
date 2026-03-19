@@ -102,6 +102,15 @@ Parameters:
     - 'aurora'
     - 'aurora-iopt1'
     Default: 'aurora'
+  GlobalClusterIdentifier:
+    Description: 'Optional identifier of an AWS::RDS::GlobalCluster to attach this cluster to as a secondary member. Leave blank for primary members and for standalone clusters.'
+    Type: String
+    Default: ''
+  EnableGlobalWriteForwarding:
+    Description: 'Enable this secondary DB cluster to forward write operations to the primary cluster of the global database. Only applicable when GlobalClusterIdentifier is set.'
+    Type: String
+    AllowedValues: ['true', 'false']
+    Default: 'false'
   DBSnapshotIdentifier:
     Description: 'Optional identifier for the DB cluster snapshot from which you want to restore (leave blank to create an empty cluster).'
     Type: String
@@ -302,11 +311,13 @@ Conditions:
   HasAlertTopic: !Not [!Equals [!Ref ParentAlertStack, '']]
   HasDBSnapshotIdentifier: !Not [!Equals [!Ref DBSnapshotIdentifier, '']]
   HasKmsKeyAndNotDBSnapshotIdentifier: !And [!Condition HasKmsKey, !Not [!Condition HasDBSnapshotIdentifier]]
+  HasNotGlobalClusterAndNotDBSnapshotIdentifier: !And [!Not [!Condition HasGlobalCluster], !Not [!Condition HasDBSnapshotIdentifier]]
   HasEngineMySQL: !Equals [!FindInMap [EngineMap, !Ref Engine, Engine], 'aurora-mysql']
   HasPerformanceInsights: !Equals [!Ref EnablePerformanceInsights, 'true']
   HasEnhancedMonitoring: !Not [!Equals [!Ref MonitoringInterval, 0]]
   HasDBClusterParameterGroup: !Not [!Equals [!Ref DBClusterParameterGroupName, '']]
   HasDBParameterGroup: !Not [!Equals [!Ref DBParameterGroupName, '']]
+  HasGlobalCluster: !Not [!Equals [!Ref GlobalClusterIdentifier, '']]
 Resources:
   SecretTargetAttachment:
     Condition: HasSecret
@@ -388,21 +399,24 @@ Resources:
     Properties:
       BackupRetentionPeriod: !Ref DBBackupRetentionPeriod
       CopyTagsToSnapshot: true
-      DatabaseName: !If [HasDBSnapshotIdentifier, !Ref 'AWS::NoValue', !Ref DBName]
+      DatabaseName: !If [HasNotGlobalClusterAndNotDBSnapshotIdentifier, !Ref DBName, !Ref 'AWS::NoValue']
       DBClusterParameterGroupName: !If [HasDBClusterParameterGroup, !Ref DBClusterParameterGroupName, !Ref DBClusterParameterGroup]
       DBSubnetGroupName: !Ref DBSubnetGroup
       Engine: !FindInMap [EngineMap, !Ref Engine, Engine]
-      EngineMode: provisioned
-      EngineVersion: !FindInMap [EngineMap, !Ref Engine, EngineVersion]
+      EngineMode: !If [HasGlobalCluster, !Ref 'AWS::NoValue', provisioned]
+      EngineVersion: !If [HasGlobalCluster, !Ref 'AWS::NoValue', !FindInMap [EngineMap, !Ref Engine, EngineVersion]]
       KmsKeyId: !If [HasKmsKeyAndNotDBSnapshotIdentifier, {'Fn::ImportValue': !Sub '${ParentKmsKeyStack}-KeyId'}, !Ref 'AWS::NoValue']
-      MasterUsername: !If [HasDBSnapshotIdentifier, !Ref 'AWS::NoValue', !Ref DBMasterUsername]
+      MasterUsername: !If [HasNotGlobalClusterAndNotDBSnapshotIdentifier, !Ref DBMasterUsername, !Ref 'AWS::NoValue']
       MasterUserPassword: !If
-      - HasDBSnapshotIdentifier
+      - HasGlobalCluster
       - !Ref 'AWS::NoValue'
       - !If
-        - HasSecret
-        - !Join ['', ['{{resolve:secretsmanager:', {'Fn::ImportValue': !Sub '${ParentSecretStack}-SecretArn'}, ':SecretString:password}}']]
-        - !Sub "${DBMasterUserPassword}"  # https://github.com/aws-cloudformation/cfn-lint/issues/3418#issuecomment-2192228851
+        - HasDBSnapshotIdentifier
+        - !Ref 'AWS::NoValue'
+        - !If
+          - HasSecret
+          - !Join ['', ['{{resolve:secretsmanager:', {'Fn::ImportValue': !Sub '${ParentSecretStack}-SecretArn'}, ':SecretString:password}}']]
+          - !Sub "${DBMasterUserPassword}"  # https://github.com/aws-cloudformation/cfn-lint/issues/3418#issuecomment-2192228851
       PerformanceInsightsEnabled: !If [HasPerformanceInsights, !Ref EnablePerformanceInsights, !Ref 'AWS::NoValue']
       PerformanceInsightsRetentionPeriod: !If [HasPerformanceInsights, !Ref PerformanceInsightsRetentionPeriod, !Ref 'AWS::NoValue']
       DatabaseInsightsMode: !Ref DatabaseInsightsMode
@@ -410,7 +424,12 @@ Resources:
       PreferredBackupWindow: !Ref PreferredBackupWindow
       PreferredMaintenanceWindow: !Ref PreferredMaintenanceWindow
       SnapshotIdentifier: !If [HasDBSnapshotIdentifier, !Ref DBSnapshotIdentifier, !Ref 'AWS::NoValue']
-      StorageEncrypted: !If [HasDBSnapshotIdentifier, !Ref 'AWS::NoValue', !If [HasKmsKey, true, false]]
+      StorageEncrypted: !If
+      - HasGlobalCluster
+      - !Ref 'AWS::NoValue'
+      - !If [HasDBSnapshotIdentifier, !Ref 'AWS::NoValue', !If [HasKmsKey, true, false]]
+      EnableGlobalWriteForwarding: !If [HasGlobalCluster, !Ref EnableGlobalWriteForwarding, !Ref 'AWS::NoValue']
+      GlobalClusterIdentifier: !If [HasGlobalCluster, !Ref GlobalClusterIdentifier, !Ref 'AWS::NoValue']
       StorageType: !Ref StorageType
       VpcSecurityGroupIds:
       - !Ref ClusterSecurityGroup
