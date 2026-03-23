@@ -48,6 +48,15 @@ Metadata:
       - DatabaseInsightsMode
       - MonitoringInterval
       - StorageType
+      - PubliclyAccessible
+      - PublicAccessSourceCidrIpA
+      - PublicAccessSourceCidrIpB
+      - PublicAccessSourceCidrIpC
+      - PublicAccessSourceCidrIpD
+      - PublicAccessSourceCidrIp6A
+      - PublicAccessSourceCidrIp6B
+      - PublicAccessSourceCidrIp6C
+      - PublicAccessSourceCidrIp6D
 Parameters:
   ParentVPCStack:
     Description: 'Stack name of parent VPC stack based on vpc/vpc-*azs.yaml template.'
@@ -190,6 +199,61 @@ Parameters:
     - 15
     - 30
     - 60
+  PubliclyAccessible:
+    Description: 'Whether the DB instances are publicly accessible. When true, instances are placed in public subnets.'
+    Type: String
+    Default: 'false'
+    AllowedValues:
+    - 'true'
+    - 'false'
+  PublicAccessSourceCidrIpA:
+    Description: 'Optional 1st source IPv4 CIDR block to allow access from when PubliclyAccessible is true (e.g. 203.0.113.0/24).'
+    Type: String
+    Default: ''
+    AllowedPattern: '^(\d{1,3}\.){3}\d{1,3}/\d{1,2}$|^$'
+    ConstraintDescription: 'Must be a valid IPv4 CIDR block (e.g. 203.0.113.0/24) or empty.'
+  PublicAccessSourceCidrIpB:
+    Description: 'Optional 2nd source IPv4 CIDR block to allow access from when PubliclyAccessible is true.'
+    Type: String
+    Default: ''
+    AllowedPattern: '^(\d{1,3}\.){3}\d{1,3}/\d{1,2}$|^$'
+    ConstraintDescription: 'Must be a valid IPv4 CIDR block (e.g. 203.0.113.0/24) or empty.'
+  PublicAccessSourceCidrIpC:
+    Description: 'Optional 3rd source IPv4 CIDR block to allow access from when PubliclyAccessible is true.'
+    Type: String
+    Default: ''
+    AllowedPattern: '^(\d{1,3}\.){3}\d{1,3}/\d{1,2}$|^$'
+    ConstraintDescription: 'Must be a valid IPv4 CIDR block (e.g. 203.0.113.0/24) or empty.'
+  PublicAccessSourceCidrIpD:
+    Description: 'Optional 4th source IPv4 CIDR block to allow access from when PubliclyAccessible is true.'
+    Type: String
+    Default: ''
+    AllowedPattern: '^(\d{1,3}\.){3}\d{1,3}/\d{1,2}$|^$'
+    ConstraintDescription: 'Must be a valid IPv4 CIDR block (e.g. 203.0.113.0/24) or empty.'
+  PublicAccessSourceCidrIp6A:
+    Description: 'Optional 1st source IPv6 CIDR block to allow access from when PubliclyAccessible is true (e.g. 2001:db8::/32).'
+    Type: String
+    Default: ''
+    AllowedPattern: '^[0-9a-fA-F:]+/\d{1,3}$|^$'
+    ConstraintDescription: 'Must be a valid IPv6 CIDR block (e.g. 2001:db8::/32) or empty.'
+  PublicAccessSourceCidrIp6B:
+    Description: 'Optional 2nd source IPv6 CIDR block to allow access from when PubliclyAccessible is true.'
+    Type: String
+    Default: ''
+    AllowedPattern: '^[0-9a-fA-F:]+/\d{1,3}$|^$'
+    ConstraintDescription: 'Must be a valid IPv6 CIDR block (e.g. 2001:db8::/32) or empty.'
+  PublicAccessSourceCidrIp6C:
+    Description: 'Optional 3rd source IPv6 CIDR block to allow access from when PubliclyAccessible is true.'
+    Type: String
+    Default: ''
+    AllowedPattern: '^[0-9a-fA-F:]+/\d{1,3}$|^$'
+    ConstraintDescription: 'Must be a valid IPv6 CIDR block (e.g. 2001:db8::/32) or empty.'
+  PublicAccessSourceCidrIp6D:
+    Description: 'Optional 4th source IPv6 CIDR block to allow access from when PubliclyAccessible is true.'
+    Type: String
+    Default: ''
+    AllowedPattern: '^[0-9a-fA-F:]+/\d{1,3}$|^$'
+    ConstraintDescription: 'Must be a valid IPv6 CIDR block (e.g. 2001:db8::/32) or empty.'
 Mappings:
   EngineMap:
     '8.0.mysql-aurora.3.03.0':
@@ -307,6 +371,23 @@ Conditions:
   HasEnhancedMonitoring: !Not [!Equals [!Ref MonitoringInterval, 0]]
   HasDBClusterParameterGroup: !Not [!Equals [!Ref DBClusterParameterGroupName, '']]
   HasDBParameterGroup: !Not [!Equals [!Ref DBParameterGroupName, '']]
+  HasPubliclyAccessible: !Equals [!Ref PubliclyAccessible, 'true']
+  HasPublicAccessSourceCidrIpA: !Not [!Equals [!Ref PublicAccessSourceCidrIpA, '']]
+  HasPublicAccessSourceCidrIpB: !Not [!Equals [!Ref PublicAccessSourceCidrIpB, '']]
+  HasPublicAccessSourceCidrIpC: !Not [!Equals [!Ref PublicAccessSourceCidrIpC, '']]
+  HasPublicAccessSourceCidrIpD: !Not [!Equals [!Ref PublicAccessSourceCidrIpD, '']]
+  HasPublicAccessSourceCidrIp6A: !Not [!Equals [!Ref PublicAccessSourceCidrIp6A, '']]
+  HasPublicAccessSourceCidrIp6B: !Not [!Equals [!Ref PublicAccessSourceCidrIp6B, '']]
+  HasPublicAccessSourceCidrIp6C: !Not [!Equals [!Ref PublicAccessSourceCidrIp6C, '']]
+  HasPublicAccessSourceCidrIp6D: !Not [!Equals [!Ref PublicAccessSourceCidrIp6D, '']]
+  HasPubliclyAccessibleWithCidrIpA: !And [!Condition HasPubliclyAccessible, !Condition HasPublicAccessSourceCidrIpA]
+  HasPubliclyAccessibleWithCidrIpB: !And [!Condition HasPubliclyAccessible, !Condition HasPublicAccessSourceCidrIpB]
+  HasPubliclyAccessibleWithCidrIpC: !And [!Condition HasPubliclyAccessible, !Condition HasPublicAccessSourceCidrIpC]
+  HasPubliclyAccessibleWithCidrIpD: !And [!Condition HasPubliclyAccessible, !Condition HasPublicAccessSourceCidrIpD]
+  HasPubliclyAccessibleWithCidrIp6A: !And [!Condition HasPubliclyAccessible, !Condition HasPublicAccessSourceCidrIp6A]
+  HasPubliclyAccessibleWithCidrIp6B: !And [!Condition HasPubliclyAccessible, !Condition HasPublicAccessSourceCidrIp6B]
+  HasPubliclyAccessibleWithCidrIp6C: !And [!Condition HasPubliclyAccessible, !Condition HasPublicAccessSourceCidrIp6C]
+  HasPubliclyAccessibleWithCidrIp6D: !And [!Condition HasPubliclyAccessible, !Condition HasPublicAccessSourceCidrIp6D]
 Resources:
   SecretTargetAttachment:
     Condition: HasSecret
@@ -351,6 +432,78 @@ Resources:
         ToPort: !FindInMap [EngineMap, !Ref Engine, Port]
         SourceSecurityGroupId: {'Fn::ImportValue': !Sub '${ParentClientStack}-ClientSecurityGroup'}
       VpcId: {'Fn::ImportValue': !Sub '${ParentVPCStack}-VPC'}
+  ClusterSecurityGroupInPublicAccessIpA:
+    Type: 'AWS::EC2::SecurityGroupIngress'
+    Condition: HasPubliclyAccessibleWithCidrIpA
+    Properties:
+      GroupId: !Ref ClusterSecurityGroup
+      IpProtocol: tcp
+      FromPort: !FindInMap [EngineMap, !Ref Engine, Port]
+      ToPort: !FindInMap [EngineMap, !Ref Engine, Port]
+      CidrIp: !Ref PublicAccessSourceCidrIpA
+  ClusterSecurityGroupInPublicAccessIpB:
+    Type: 'AWS::EC2::SecurityGroupIngress'
+    Condition: HasPubliclyAccessibleWithCidrIpB
+    Properties:
+      GroupId: !Ref ClusterSecurityGroup
+      IpProtocol: tcp
+      FromPort: !FindInMap [EngineMap, !Ref Engine, Port]
+      ToPort: !FindInMap [EngineMap, !Ref Engine, Port]
+      CidrIp: !Ref PublicAccessSourceCidrIpB
+  ClusterSecurityGroupInPublicAccessIpC:
+    Type: 'AWS::EC2::SecurityGroupIngress'
+    Condition: HasPubliclyAccessibleWithCidrIpC
+    Properties:
+      GroupId: !Ref ClusterSecurityGroup
+      IpProtocol: tcp
+      FromPort: !FindInMap [EngineMap, !Ref Engine, Port]
+      ToPort: !FindInMap [EngineMap, !Ref Engine, Port]
+      CidrIp: !Ref PublicAccessSourceCidrIpC
+  ClusterSecurityGroupInPublicAccessIpD:
+    Type: 'AWS::EC2::SecurityGroupIngress'
+    Condition: HasPubliclyAccessibleWithCidrIpD
+    Properties:
+      GroupId: !Ref ClusterSecurityGroup
+      IpProtocol: tcp
+      FromPort: !FindInMap [EngineMap, !Ref Engine, Port]
+      ToPort: !FindInMap [EngineMap, !Ref Engine, Port]
+      CidrIp: !Ref PublicAccessSourceCidrIpD
+  ClusterSecurityGroupInPublicAccessIp6A:
+    Type: 'AWS::EC2::SecurityGroupIngress'
+    Condition: HasPubliclyAccessibleWithCidrIp6A
+    Properties:
+      GroupId: !Ref ClusterSecurityGroup
+      IpProtocol: tcp
+      FromPort: !FindInMap [EngineMap, !Ref Engine, Port]
+      ToPort: !FindInMap [EngineMap, !Ref Engine, Port]
+      CidrIpv6: !Ref PublicAccessSourceCidrIp6A
+  ClusterSecurityGroupInPublicAccessIp6B:
+    Type: 'AWS::EC2::SecurityGroupIngress'
+    Condition: HasPubliclyAccessibleWithCidrIp6B
+    Properties:
+      GroupId: !Ref ClusterSecurityGroup
+      IpProtocol: tcp
+      FromPort: !FindInMap [EngineMap, !Ref Engine, Port]
+      ToPort: !FindInMap [EngineMap, !Ref Engine, Port]
+      CidrIpv6: !Ref PublicAccessSourceCidrIp6B
+  ClusterSecurityGroupInPublicAccessIp6C:
+    Type: 'AWS::EC2::SecurityGroupIngress'
+    Condition: HasPubliclyAccessibleWithCidrIp6C
+    Properties:
+      GroupId: !Ref ClusterSecurityGroup
+      IpProtocol: tcp
+      FromPort: !FindInMap [EngineMap, !Ref Engine, Port]
+      ToPort: !FindInMap [EngineMap, !Ref Engine, Port]
+      CidrIpv6: !Ref PublicAccessSourceCidrIp6C
+  ClusterSecurityGroupInPublicAccessIp6D:
+    Type: 'AWS::EC2::SecurityGroupIngress'
+    Condition: HasPubliclyAccessibleWithCidrIp6D
+    Properties:
+      GroupId: !Ref ClusterSecurityGroup
+      IpProtocol: tcp
+      FromPort: !FindInMap [EngineMap, !Ref Engine, Port]
+      ToPort: !FindInMap [EngineMap, !Ref Engine, Port]
+      CidrIpv6: !Ref PublicAccessSourceCidrIp6D
   ClusterSecurityGroupInSSHBastion:
     Type: 'AWS::EC2::SecurityGroupIngress'
     Condition: HasSSHBastionSecurityGroup
@@ -364,7 +517,10 @@ Resources:
     Type: 'AWS::RDS::DBSubnetGroup'
     Properties:
       DBSubnetGroupDescription: !Ref 'AWS::StackName'
-      SubnetIds: !Split [',', {'Fn::ImportValue': !Sub '${ParentVPCStack}-SubnetsPrivate'}]
+      SubnetIds: !If
+      - HasPubliclyAccessible
+      - !Split [',', {'Fn::ImportValue': !Sub '${ParentVPCStack}-SubnetsPublic'}]
+      - !Split [',', {'Fn::ImportValue': !Sub '${ParentVPCStack}-SubnetsPrivate'}]
   DBClusterParameterGroup:
     Type: 'AWS::RDS::DBClusterParameterGroup'
     Properties:
@@ -380,7 +536,9 @@ Resources:
         character_set_server: utf8
         collation_connection: utf8_general_ci
         collation_server: utf8_general_ci
+        require_secure_transport: !If [HasPubliclyAccessible, 'ON', 'OFF']
       - client_encoding: 'UTF8'
+        rds.force_ssl: !If [HasPubliclyAccessible, '1', '0']
   DBCluster:
     DeletionPolicy: Snapshot # default
     UpdateReplacePolicy: Snapshot
@@ -444,6 +602,7 @@ Resources:
       DBParameterGroupName: !If [HasDBParameterGroup, !Ref DBParameterGroupName, !Ref DBParameterGroup]
       DBSubnetGroupName: !Ref DBSubnetGroup
       Engine: !FindInMap [EngineMap, !Ref Engine, Engine]
+      PubliclyAccessible: !Ref PubliclyAccessible
       EnablePerformanceInsights: !If [HasPerformanceInsights, !Ref EnablePerformanceInsights, !Ref 'AWS::NoValue']
       PerformanceInsightsRetentionPeriod: !If [HasPerformanceInsights, !Ref PerformanceInsightsRetentionPeriod, !Ref 'AWS::NoValue']
       MonitoringInterval: !If [HasEnhancedMonitoring, !Ref MonitoringInterval, !Ref 'AWS::NoValue']
@@ -459,6 +618,7 @@ Resources:
       DBParameterGroupName: !If [HasDBParameterGroup, !Ref DBParameterGroupName, !Ref DBParameterGroup]
       DBSubnetGroupName: !Ref DBSubnetGroup
       Engine: !FindInMap [EngineMap, !Ref Engine, Engine]
+      PubliclyAccessible: !Ref PubliclyAccessible
       EnablePerformanceInsights: !If [HasPerformanceInsights, !Ref EnablePerformanceInsights, !Ref 'AWS::NoValue']
       PerformanceInsightsRetentionPeriod: !If [HasPerformanceInsights, !Ref PerformanceInsightsRetentionPeriod, !Ref 'AWS::NoValue']
       MonitoringInterval: !If [HasEnhancedMonitoring, !Ref MonitoringInterval, !Ref 'AWS::NoValue']
