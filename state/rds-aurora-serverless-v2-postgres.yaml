@@ -44,7 +44,7 @@ Metadata:
       - EnableDataApi
       - EngineVersion
       - PerformanceInsightsRetentionPeriod
-      # TODO re-enable as soon as CloudFormation bug ix fixed
+      # TODO re-enable as soon as CloudFormation bug is fixed
       #- PreferredBackupWindow
       #- PreferredMaintenanceWindow
       - SubDomainNameWithDot
