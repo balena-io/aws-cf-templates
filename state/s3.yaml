@@ -50,6 +50,13 @@ Metadata:
       - LambdaFunctionEvent
       - LambdaFunctionFilterPrefix
     - Label:
+        default: 'Replication Parameters'
+      Parameters:
+      - ReplicationDestinationBucketArn
+      - ReplicationStorageClass
+      - ReplicationPrefix
+      - ReplicationPolicyArn
+    - Label:
         default: 'Operational Parameters'
       Parameters:
       - LogsRetentionInDays
@@ -149,6 +156,22 @@ Parameters:
     Description: 'Optional ARN for a policy that will be used as the permission boundary for all roles created by this template.'
     Type: String
     Default: ''
+  ReplicationDestinationBucketArn:
+    Description: 'Optional ARN of the destination S3 bucket for replication (e.g. arn:aws:s3:::my-destination-bucket).'
+    Type: String
+    Default: ''
+  ReplicationStorageClass:
+    Description: 'Storage class for replicated objects in the destination bucket.'
+    Type: String
+    Default: STANDARD
+    AllowedValues: [DEEP_ARCHIVE, GLACIER, GLACIER_IR, INTELLIGENT_TIERING, ONEZONE_IA, OUTPOSTS, REDUCED_REDUNDANCY, STANDARD, STANDARD_IA]
+  ReplicationPrefix:
+    Description: 'Optional key prefix to filter which objects are replicated (leave empty to replicate all objects).'
+    Type: String
+    Default: ''
+  ReplicationPolicyArn:
+    Description: 'ARN of the IAM policy to attach to the replication IAM role (required when replication is enabled).'
+    Type: String
   CorsAllowedHeaders:
     Description: 'Headers that are specified in the Access-Control-Request-Headers header.'
     Type: String
@@ -202,6 +225,7 @@ Conditions:
   HasPermissionsBoundary: !Not [!Equals [!Ref PermissionsBoundary, '']]
   HasBucketOwnerPreferred: !Or [!Condition HasCloudFrontAccessLogWrite, !Condition HasS3AccessLogWrite, !Not [!Condition HasBlockPublicAccess]]
   HasRestrictCustomerKeys: !Equals [!Ref RestrictCustomerKeys, 'true']
+  HasReplicationConfiguration: !Not [!Equals [!Ref ReplicationDestinationBucketArn, '']]
   HasCorsConfiguration: !And [!Not [!Equals [!Ref CorsAllowedMethods, '']], !Not [!Equals [!Ref CorsAllowedOrigins, '']]]
   HasCorsAllowedHeaders: !Not [!Equals [!Ref CorsAllowedHeaders, '']]
   HasCorsExposedHeaders: !Not [!Equals [!Ref CorsExposedHeaders, '']]
@@ -235,10 +259,21 @@ Resources:
         - !If [HasS3VirusScan, {Event: 's3:ObjectCreated:*', Queue: {'Fn::ImportValue': !Sub '${ParentS3VirusScanStack}-ScanQueueArn'}}, !Ref 'AWS::NoValue']
       OwnershipControls: !If [HasBucketOwnerPreferred, {Rules: [{ObjectOwnership: BucketOwnerPreferred}]}, {Rules: [{ObjectOwnership: BucketOwnerEnforced}]}]
       PublicAccessBlockConfiguration: !If [HasBlockPublicAccess, {BlockPublicAcls: true, BlockPublicPolicy: true, IgnorePublicAcls: true, RestrictPublicBuckets: true}, {BlockPublicAcls: true, BlockPublicPolicy: false, IgnorePublicAcls: true, RestrictPublicBuckets: false}] # AWS Foundational Security Best Practices v1.0.0 S3.8
-      VersioningConfiguration: !If [HasVersioning, {Status: Enabled}, !If [HadVersioning, {Status: Suspended}, !Ref 'AWS::NoValue']]
+      VersioningConfiguration: !If [HasReplicationConfiguration, {Status: Enabled}, !If [HasVersioning, {Status: Enabled}, !If [HadVersioning, {Status: Suspended}, !Ref 'AWS::NoValue']]]
       BucketEncryption:
         ServerSideEncryptionConfiguration:
         - !If [HasKmsKey, {BucketKeyEnabled: true, ServerSideEncryptionByDefault: {KMSMasterKeyID: {'Fn::ImportValue': !Sub '${ParentKmsKeyStack}-KeyArn'}, SSEAlgorithm: 'aws:kms'}}, {ServerSideEncryptionByDefault: {SSEAlgorithm: 'AES256'}}]
+      ReplicationConfiguration: !If
+      - HasReplicationConfiguration
+      - Role: !GetAtt ReplicationRole.Arn
+        Rules:
+        - Id: ReplicationRule
+          Status: Enabled
+          Prefix: !Ref ReplicationPrefix
+          Destination:
+            Bucket: !Ref ReplicationDestinationBucketArn
+            StorageClass: !Ref ReplicationStorageClass
+      - !Ref 'AWS::NoValue'
       CorsConfiguration: !If
       - HasCorsConfiguration
       - CorsRules:
@@ -571,6 +606,36 @@ Resources:
     Properties:
       Bucket: !Ref Bucket
       ServiceToken: !GetAtt 'LambdaFunction.Arn'
+  ReplicationRole:
+    Condition: HasReplicationConfiguration
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service: 's3.amazonaws.com'
+          Action: 'sts:AssumeRole'
+      PermissionsBoundary: !If [HasPermissionsBoundary, !Ref PermissionsBoundary, !Ref 'AWS::NoValue']
+      ManagedPolicyArns:
+      - !Ref ReplicationPolicyArn
+      Policies:
+      - PolicyName: ReplicationSourcePolicy
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action:
+            - 's3:GetReplicationConfiguration'
+            - 's3:ListBucket'
+            Resource: !If [HasBucketName, !Sub 'arn:${AWS::Partition}:s3:::${BucketName}', !Sub 'arn:${AWS::Partition}:s3:::${AWS::StackName}-*']
+          - Effect: Allow
+            Action:
+            - 's3:GetObjectVersionForReplication'
+            - 's3:GetObjectVersionAcl'
+            - 's3:GetObjectVersionTagging'
+            Resource: !If [HasBucketName, !Sub 'arn:${AWS::Partition}:s3:::${BucketName}/*', !Sub 'arn:${AWS::Partition}:s3:::${AWS::StackName}-*/*']
 Outputs:
   TemplateID:
     Description: 'cloudonaut.io template id.'
@@ -586,6 +651,11 @@ Outputs:
     Value: !Ref Bucket
     Export:
       Name: !Sub '${AWS::StackName}-BucketName'
+  BucketArn:
+    Description: 'ARN of the bucket.'
+    Value: !GetAtt 'Bucket.Arn'
+    Export:
+      Name: !Sub '${AWS::StackName}-BucketArn'
   BucketDomainName:
     Description: 'Domain name of the bucket.'
     Value: !GetAtt 'Bucket.DomainName'
