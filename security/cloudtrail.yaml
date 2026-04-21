@@ -699,3 +699,14 @@ Outputs:
   StackName:
     Description: 'Stack name.'
     Value: !Sub '${AWS::StackName}'
+  TrailTopicArn:
+    Description: 'ARN of the SNS topic that CloudTrail publishes notifications to.'
+    Value: !Ref TrailTopic
+    Export:
+      Name: !Sub '${AWS::StackName}-TrailTopicArn'
+  TrailBucketName:
+    Condition: InternalBucket
+    Description: 'Name of the S3 bucket where CloudTrail writes logs.'
+    Value: !Ref TrailBucket
+    Export:
+      Name: !Sub '${AWS::StackName}-TrailBucketName'
