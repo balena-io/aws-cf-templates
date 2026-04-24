@@ -1,4 +1,20 @@
 - commits:
+    - subject: Add SNS topic and S3 bucket exports to cloudtrail stack
+      hash: 4cbe76dcb5158c16f86a23b0b6712133913ed328
+      body: |
+        Exports TrailTopicArn and TrailBucketName so dependent stacks can
+        reference them via Fn::ImportValue without hardcoding values.
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Carlo Miguel F. Cruz <carloc@balena.io>
+        signed-off-by: Carlo Miguel F. Cruz <carloc@balena.io>
+      author: Carlo Miguel F. Cruz
+      nested: []
+  version: 0.2.2
+  title: ""
+  date: 2026-04-24T00:14:09.096Z
+- commits:
     - subject: Add support for aurora postgres 17.6/17.7
       hash: 2b2c063d040fb9a2ea547bdcbcccd54845f8e8eb
       body: ""
