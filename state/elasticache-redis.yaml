@@ -159,6 +159,9 @@ Parameters:
     - volatile-ttl
 Mappings:
   EngineVersionMap:
+    '9.0':
+      CacheParameterGroupFamily: valkey9
+      Engine: valkey
     '8.1':
       CacheParameterGroupFamily: valkey8
       Engine: valkey
