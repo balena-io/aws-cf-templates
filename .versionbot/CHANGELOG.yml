@@ -1,4 +1,16 @@
 - commits:
+    - subject: Add support for elasticache valkey 9
+      hash: 17adfac6717a15716e9bd767952d65097ee495df
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 0.2.3
+  title: ""
+  date: 2026-05-15T13:08:09.842Z
+- commits:
     - subject: Add SNS topic and S3 bucket exports to cloudtrail stack
       hash: 4cbe76dcb5158c16f86a23b0b6712133913ed328
       body: |
