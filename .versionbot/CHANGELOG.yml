@@ -1,4 +1,17 @@
 - commits:
+    - subject: Fix support for elasticache valkey 9
+      hash: d15953f7e1dbce8523abaea7e15e55eb817c6794
+      body: |
+        https://balena.fibery.io/Work/Project/2605
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 0.2.4
+  title: ""
+  date: 2026-05-28T07:19:34.066Z
+- commits:
     - subject: Add support for elasticache valkey 9
       hash: 17adfac6717a15716e9bd767952d65097ee495df
       body: ""
