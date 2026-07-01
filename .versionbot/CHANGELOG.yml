@@ -1,4 +1,17 @@
 - commits:
+    - subject: Add support for elasticache valkey 9.1
+      hash: 52695a0d2122c9fb4ac68f5b36154c4c2fbd911c
+      body: |
+        https://balena.fibery.io/Work/Project/2740
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 0.2.6
+  title: ""
+  date: 2026-07-01T14:17:54.393Z
+- commits:
     - subject: Add support for aurora postgres 17.9/18.3
       hash: 076fe81f61d0fb812a641958e907727c2d5df9d2
       body: |
